@@ -51,7 +51,7 @@ def _has_ipv6():
         # https://bugs.python.org/issue658327
         try:
             sock = socket.socket(socket.AF_INET6)
-            sock.bind(('::1', 0))
+            sock.bind(('localhost', 0))
             has_ipv6 = True
         except:
             pass
@@ -141,7 +141,7 @@ def bind_sockets(port, address=None, family=socket.AF_UNSPEC, backlog=128,
     sockets = []
     if address == "":
         address = None
-    if not socket.has_ipv6 and family == socket.AF_UNSPEC:
+    if not HAS_IPV6 and family == socket.AF_UNSPEC:
         # Python can be compiled with --disable-ipv6, which causes
         # operations on AF_INET6 sockets to fail, but does not
         # automatically exclude those results from getaddrinfo
