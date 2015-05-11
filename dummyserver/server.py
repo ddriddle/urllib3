@@ -38,6 +38,30 @@ DEFAULT_CA = os.path.join(CERTS_PATH, 'cacert.pem')
 DEFAULT_CA_BAD = os.path.join(CERTS_PATH, 'client_bad.pem')
 NO_SAN_CA = os.path.join(CERTS_PATH, 'cacert.no_san.pem')
 
+def _has_ipv6():
+    """ Returns True if the system can bind an IPv6 address. """
+    sock = None
+    has_ipv6 = False
+
+    if socket.has_ipv6:
+        # has_ipv6 returns true if cPython was compiled with IPv6 support.
+        # It does not tell us if the system has IPv6 support enabled. To
+        # determine that we must bind to an IPv6 address.
+        # https://github.com/shazow/urllib3/pull/611
+        # https://bugs.python.org/issue658327
+        try:
+            sock = socket.socket(socket.AF_INET6)
+            sock.bind(('::1', 0))
+            has_ipv6 = True
+        except:
+            pass
+
+    if sock:
+        sock.close()
+    return has_ipv6
+
+HAS_IPV6 = _has_ipv6()
+
 
 # Different types of servers we have:
 
@@ -64,7 +88,7 @@ class SocketServerThread(threading.Thread):
         self.ready_event = ready_event
 
     def _start_server(self):
-        if socket.has_ipv6:
+        if HAS_IPV6:
             sock = socket.socket(socket.AF_INET6)
         else:
             warnings.warn("No IPv6 support. Falling back to IPv4.",
